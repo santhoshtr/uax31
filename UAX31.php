@@ -18,7 +18,12 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-function isValidUserName( $name ) {
+function isIdentifier( $name ) {
+	$valid = false;
+	$valid  = checkIDStart(mb_substr($name,0,1,"UTF-8"));
+	if(!$valid){
+		return false;
+	}
 	// Check an additional blacklist of troublemaker characters.
 	// Should these be merged into the title char list?
 	$unicodeBlacklist = '/[' .
@@ -30,12 +35,13 @@ function isValidUserName( $name ) {
 		'\x{e000}-\x{f8ff}' . # private use
 		']/u';
 	if( preg_match( $unicodeBlacklist, $name ) ) {
-		//does the string contains format control charactes ZWJ and ZWNJ?
-		if( preg_match( '/[\x{200C}-\x{200D}]/u', $name ) ) {
-			UAXSection203Check($name);
-		}
+		$valid = false;
 	}
-	return true;
+	//does the string contains format control charactes ZWJ and ZWNJ?
+	if( preg_match( '/[\x{200C}-\x{200D}]/u', $name ) ) {
+		return UAXSection203Check($name);
+	}
+	return $valid;
 }
 
 function UAXSection203Check( $name ) {
@@ -85,6 +91,22 @@ function UAXSection203Check( $name ) {
 		$fcCharacterFound=false;
 	}
 	return true;
+}
+
+function checkIDStart($character){
+	$idStartList = '/[' .
+		'\p{Ll}' .
+		'\p{Lu}' .
+		'\p{Lt}'.
+		'\p{Lo}'.
+		'\p{Lm}'.
+		'\p{Nl}'.
+		']/u';
+	if( preg_match( $idStartList, $character ) ) {
+		return true;
+	}
+
+	return false;
 }
 
 function getCodePoints($unistr, $encoding = 'UTF-8'){       
