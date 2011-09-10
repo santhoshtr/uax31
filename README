@@ -1,0 +1,65 @@
+UAX 31 Implementation
+=====================
+UAX 31:  http://www.unicode.org/reports/tr31/  - Unicode Identifier and Pattern Syntax
+
+D1. Default Identifier Syntax
+
+<identifier> := <ID_Start> <ID_Continue>*
+
+ID_Start
+========
+
+Characters having the Unicode General_Category of uppercase letters (Lu), lowercase letters (Ll), titlecase letters (Lt), modifier letters (Lm), other letters (Lo), letter numbers (Nl), minus Pattern_Syntax and Pattern_White_Space code points, plus stability extensions. Note that “other letters” includes ideographs.
+
+In set notation, this is [[:L:][:Nl:]--[:Pattern_Syntax:]--[:Pattern_White_Space:]] plus stability extensions.
+
+ID_Continue
+===========
+
+All of the above, plus characters having the Unicode General_Category of nonspacing marks (Mn), spacing combining marks (Mc), decimal number (Nd), connector punctuations (Pc), plus stability extensions, minus Pattern_Syntax and Pattern_White_Space code points.
+
+In set notation, this is [[:L:][:Nl:][:Mn:][:Mc:][:Nd:][:Pc:]--[:Pattern_Syntax:]--[:Pattern_White_Space:]] plus stability extensions.
+
+These are also known simply as Identifier Characters, because they are a superset of the ID_Start characters.
+
+Special rules
+=============
+2.3 Layout and Format Control Characters
+
+A1. Allow ZWNJ in the following context:
+---------------------------------------
+
+Breaking a cursive connection. That is, in the context based on the Joining_Type property, consisting of:
+
+    A Left-Joining or Dual-Joining character, followed by zero or more Transparent characters, followed by a ZWNJ, followed by zero or more Transparent characters, followed by a Right-Joining or Dual-Joining character
+    This corresponds to the following regular expression (in Perl-style syntax): /$LJ $T* ZWNJ $T* $RJ/
+    where:
+
+        $T = [:Joining_Type=Transparent:]
+        $RJ = [[:Joining_Type=Dual_Joining:][:Joining_Type=Right_Joining:]]
+        $LJ = [[:Joining_Type=Dual_Joining:][:Joining_Type=Left_Joining:]] 
+
+
+A2. Allow ZWNJ in the following context:
+---------------------------------------
+
+In a conjunct context. That is, a sequence of the form:
+
+    A Letter, followed by a Virama, followed by a ZWNJ
+    This corresponds to the following regular expression (in Perl-style syntax): /$L $V ZWNJ/
+    where:
+
+        $L = [:General_Category=Letter:]
+        $V = [:Canonical_Combining_Class=Virama:] 
+
+B. Allow ZWJ in the following context:
+--------------------------------------
+In a conjunct context. That is, a sequence of the form:
+
+    A Letter, followed by a Virama, followed by a ZWJ
+    This corresponds to the following regular expression (in Perl-style syntax): /$L $V ZWJ/
+    where:
+
+        $L= [:General_Category=Letter:]
+        $V = [:Canonical_Combining_Class=Virama:] 
+
