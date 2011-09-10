@@ -84,7 +84,6 @@ function UAXSection203Check( $name ) {
 		}
 		$fcCharacterFound=false;
 	}
-	print($lang);
 	return true;
 }
 
@@ -99,10 +98,6 @@ function getCodePoints($unistr, $encoding = 'UTF-8'){
 	return($codepoints);
 }
 
-// example use
-foreach (array('නන්දිමිත්‍ර','සසීන්ද්‍ර', 'തോട്ടിങ്ങല്‍' ,'തോട്ടിങ്ങല്') as $name) {
-	echo $name,': ',isValidUserName($name),"\n";
-}
 
 ?>
 
