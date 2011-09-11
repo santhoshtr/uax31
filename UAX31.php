@@ -18,6 +18,14 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
+/**
+ * Is the input a valid identifier?
+ *
+ * Checks if the input is a valid identifier.
+ *
+ * @param $name String to match
+ * @return Bool
+ */
 function isIdentifier( $name ) {
 	$valid = false;
 	$valid  = checkIDStart(mb_substr($name,0,1,"UTF-8"));
@@ -83,9 +91,10 @@ function checkIDContinue( $name ) {
 	$codepoints = getCodePoints($name);
 	
 	for($i = 0; $i < sizeof($codepoints); $i++){       
+		$character = mb_substr($name,$i,1,"UTF-8") ;
 		//check whether the script contains mixed scripts
-		if(!preg_match( '/\p{'.$lang.'}+/u', mb_substr($name,$i,1,"UTF-8") ) ) {    
-		    if(!preg_match( '/[\x{200C}-\x{200D}]/u', mb_substr($name,$i,1,"UTF-8") ) ) {
+		if(!preg_match( '/\p{'.$lang.'}+/u', $character) ) {    
+		    if(!preg_match( '/[\x{200C}-\x{200D}]/u',$character) ) {
 			return false;
 		    }
 		}
@@ -124,19 +133,36 @@ function checkIDContinue( $name ) {
 				return false;
 			}	
 		}
+		//TODO: Impliment UAX 31 Section 2.3 section A1
 		$fcCharacterFound=false;
+		$allowedCharacters = '/[' .
+		    '\p{Ll}'. #lowercase letters 
+		    '\p{Lu}'. #uppercase letters
+		    '\p{Lt}'. #titlecase letters 
+		    '\p{Lo}'. #other letters
+		    '\p{Lm}'. #modifier letters
+		    '\p{Nl}'. #letter numbers 
+		    '\p{Mn}'. #Non-spacing mark
+		    '\p{Mc}'. #spacing combining marks
+		    '\p{Nd}'. #decimal number
+		    '\p{Pc}'. #connector punctuations
+		    ']/u';
+		if(!preg_match( $allowedCharacters, $character ) ) {
+		    echo $character. $codepoints{$i}. "\n";
+		    return false;
+		}
 	}
 	return true;
 }
 
 function checkIDStart($character){
 	$idStartList = '/[' .
-		'\p{Ll}' .
-		'\p{Lu}' .
-		'\p{Lt}'.
-		'\p{Lo}'.
-		'\p{Lm}'.
-		'\p{Nl}'.
+		'\p{Ll}'. #lowercase letters 
+		'\p{Lu}'. #uppercase letters
+		'\p{Lt}'. #titlecase letters 
+		'\p{Lo}'. #other letters
+		'\p{Lm}'. #modifier letters
+		'\p{Nl}'. #letter numbers 
 		']/u';
 	if( preg_match( $idStartList, $character ) ) {
 		return true;
