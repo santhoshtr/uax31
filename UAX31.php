@@ -37,28 +37,71 @@ function isIdentifier( $name ) {
 	if( preg_match( $unicodeBlacklist, $name ) ) {
 		$valid = false;
 	}
-	//does the string contains format control charactes ZWJ and ZWNJ?
-	if( preg_match( '/[\x{200C}-\x{200D}]/u', $name ) ) {
-		return UAXSection203Check($name);
-	}
-	return $valid;
+	return checkIDContinue($name);
+
 }
 
-function UAXSection203Check( $name ) {
+function checkIDContinue( $name ) {
 	$codepoints = array();
 	$fcCharacterFound = false;
-	if( preg_match( '/\p{Malayalam}+/u', $name ) ) {
-		$lang= "Malayalam";
+	$lang= NULL;
+	//List of recommended scripts as per Table 5a. Recommended Scripts of UAX 31
+	$allowedScripts = array("Common",
+		"Arabic",
+		"Armenian",
+		"Bengali",
+		"Bopomofo",
+		"Cyrillic",
+		"Devanagari",
+		"Ethiopic",
+		"Georgian",
+		"Greek",
+		"Gujarati",
+		"Gurmukhi",
+		"Han",
+		"Hangul",
+		"Hebrew",
+		"Hiragana",
+		"Kannada",
+		"Katakana",
+		"Khmer",
+		"Lao",
+		"Latin",
+		"Malayalam",
+		"Myanmar",
+		"Oriya",
+		"Sinhala",
+		"Tamil",
+		"Telugu",
+		"Thaana",
+		"Thai",
+		"Tibetan",
+		"Canadian_Aboriginal",
+		"Mongolian",
+		"Tifinagh",
+		"Yi");
+	
+	
+	for($i = 0; $i < sizeof($allowedScripts); $i++){       
+	    if( preg_match( '/\p{'.$allowedScripts{$i}.'}+/u', $name ) ) {    
+		$lang = $allowedScripts{$i};
+		break;
+	    }
 	}
-	if( preg_match( '/\p{Sinhala}+/u', $name ) ) {
-		$lang= "Sinhala";
-	}
-	if( preg_match( '/\p{Arabic}+/u', $name ) ) {
-		$lang= "Arabic";
+	if($lang == NULL){
+	    //script does not belong to the allowed scripts
+	    //TODO:Should we use Table 5b. Limited Use Scripts also?
+	    return false;
 	}
 	$codepoints = getCodePoints($name);
 	
 	for($i = 0; $i < sizeof($codepoints); $i++){       
+		//check whether the script contains mixed scripts
+		if(!preg_match( '/\p{'.$lang.'}+/u', mb_substr($name,$i,1,"UTF-8") ) ) {    
+		    if(!preg_match( '/[\x{200C}-\x{200D}]/u', mb_substr($name,$i,1,"UTF-8") ) ) {
+			return false;
+		    }
+		}
 		//UAX 31 Section 2.3 section B
 		if($codepoints{$i}==8205){ //ZWJ
 			if($fcCharacterFound){
@@ -66,6 +109,9 @@ function UAXSection203Check( $name ) {
 				return false;
 			}
 			$fcCharacterFound = true;
+			if(!in_array ($lang , array("Malayalam","Sinhala"))){
+			    return false;
+			}
 			if($i>0 && ( $codepoints{$i-1}==3405)//Malayalam VIRAMA
 				|| ( $codepoints{$i-1}==3530)//Sinhala Sign Al-lakuna or VIRAMA
 				){
@@ -82,6 +128,9 @@ function UAXSection203Check( $name ) {
 				return false;
 			}
 			$fcCharacterFound = true;
+			if(!in_array ($lang , array("Malayalam"))){
+			    return false;
+			}
 			if($i>0 && ( $codepoints{$i-1}==3405) && $i+1< sizeof($codepoints)){ //Malayalam VIRAMA
 				continue;
 			}else{
